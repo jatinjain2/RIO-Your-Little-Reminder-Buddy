@@ -133,3 +133,8 @@ The setup installer (`RIO Setup 1.0.0.exe`) will be generated inside the `dist-e
 
 ## 📜 License
 This project is open-source and licensed under the [MIT License](LICENSE).
+
+## 👤 Author
+
+Developed by **Jatin Jain**  
+- GitHub: [@jatinjain2](https://github.com/jatinjain2)
