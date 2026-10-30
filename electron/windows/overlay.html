@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rio Notification Overlay</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-drag: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background: transparent;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+    }
+
+    .card {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(145deg, #ffffff, #f0f7ff);
+      border: 1.5px solid #c7e2fe;
+      border-radius: 24px;
+      box-shadow: 0 16px 36px -6px rgba(10, 37, 64, 0.28), 0 0 0 1px rgba(50, 155, 250, 0.15);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: translateY(-16px) scale(0.96); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .drag-bar {
+      height: 28px;
+      background: rgba(232, 244, 255, 0.6);
+      -webkit-app-region: drag;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      border-bottom: 1px solid #e1effe;
+      cursor: grab;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #1769AA;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .brand-dot {
+      width: 7px;
+      height: 7px;
+      background: #329BFA;
+      border-radius: 50%;
+    }
+
+    .close-btn {
+      -webkit-app-region: no-drag;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0, 0, 0, 0.05);
+      color: #557086;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: bold;
+      transition: all 0.15s;
+    }
+
+    .close-btn:hover {
+      background: #fee2e2;
+      color: #dc2626;
+      transform: scale(1.08);
+    }
+
+    .content {
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      justify-content: space-between;
+    }
+
+    .mascot-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .mascot-avatar {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      background: #E8F4FF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid #cce4fc;
+    }
+
+    .mascot-avatar svg {
+      width: 44px;
+      height: 44px;
+    }
+
+    .header-text h3 {
+      font-size: 17px;
+      font-weight: 800;
+      color: #0A2540;
+      line-height: 1.2;
+    }
+
+    .header-text p {
+      font-size: 13px;
+      color: #329BFA;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .stats-card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 10px 12px;
+      border: 1px solid #dcebfa;
+      margin: 8px 0;
+    }
+
+    .stats-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #4b6b85;
+      margin-bottom: 4px;
+    }
+
+    .stats-line strong {
+      color: #0A2540;
+    }
+
+    .progress-bar-bg {
+      height: 7px;
+      background: #e2effd;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #329BFA, #1769AA);
+      border-radius: 999px;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    .quick-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .btn-quick {
+      -webkit-app-region: no-drag;
+      background: #E8F4FF;
+      border: 1px solid #bde0fe;
+      color: #1769AA;
+      padding: 8px 4px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+
+    .btn-quick:hover {
+      background: #329BFA;
+      color: #ffffff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(50, 155, 250, 0.3);
+    }
+
+    .btn-custom {
+      -webkit-app-region: no-drag;
+      background: #329BFA;
+      border: none;
+      color: white;
+      padding: 9px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-custom:hover {
+      background: #1769AA;
+      transform: translateY(-1px);
+    }
+
+    .bottom-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-secondary {
+      -webkit-app-region: no-drag;
+      flex: 1;
+      background: #ffffff;
+      border: 1px solid #d0e3f5;
+      color: #64748b;
+      padding: 7px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-secondary:hover {
+      background: #f8fafc;
+      color: #0A2540;
+    }
+
+    /* Custom ML mini input mode inside overlay */
+    .custom-input-box {
+      display: none;
+      margin-top: 8px;
+      gap: 6px;
+    }
+
+    .custom-input-box input {
+      flex: 1;
+      padding: 7px 10px;
+      border-radius: 8px;
+      border: 1px solid #94cbff;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0A2540;
+      outline: none;
+    }
+
+    .custom-input-box button {
+      padding: 7px 12px;
+      border-radius: 8px;
+      border: none;
+      background: #10B981;
+      color: white;
+      font-weight: bold;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    /* Task reminder UI variant */
+    .task-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: #e0f2fe;
+      color: #0284c7;
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="drag-bar">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span>RIO COMPANION</span>
+      </div>
+      <button class="close-btn" id="closeBtn" title="Dismiss (Does not record water or complete task)">✕</button>
+    </div>
+
+    <div class="content" id="cardContent">
+      <!-- Water Reminder Template -->
+      <div id="waterView">
+        <div class="mascot-row">
+          <div class="mascot-avatar">
+            <!-- Rio Droplet SVG -->
+            <svg viewBox="0 0 100 100" fill="none">
+              <path d="M50 10 C50 10 20 48 20 68 C20 84.5 33.5 95 50 95 C66.5 95 80 84.5 80 68 C80 48 50 10 50 10Z" fill="url(#rioGrad)" />
+              <!-- Highlight -->
+              <path d="M35 55 C35 48 40 40 46 36" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+              <!-- Happy Eyes -->
+              <path d="M38 65 Q43 59 48 65" stroke="#0A2540" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+              <path d="M54 65 Q59 59 64 65" stroke="#0A2540" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+              <!-- Blush -->
+              <circle cx="34" cy="70" r="4" fill="#FFA5BA" opacity="0.7"/>
+              <circle cx="68" cy="70" r="4" fill="#FFA5BA" opacity="0.7"/>
+              <!-- Cute Smile -->
+              <path d="M48 72 Q51 77 54 72" stroke="#0A2540" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              <defs>
+                <linearGradient id="rioGrad" x1="20" y1="20" x2="80" y2="95" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#55B0FA"/>
+                  <stop offset="1" stop-color="#1E78D6"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="header-text">
+            <h3 id="waterTitle">Hey buddy! 💧</h3>
+            <p id="waterSubtitle">Time to hydrate!</p>
+          </div>
+        </div>
+
+        <div class="stats-card">
+          <div class="stats-line">
+            <span>Hydration Progress:</span>
+            <strong id="waterProgressText">0 / 2500 ml</strong>
+          </div>
+          <div class="stats-line">
+            <span>Remaining today:</span>
+            <strong id="waterRemainingText">2500 ml</strong>
+          </div>
+          <div class="stats-line" style="font-size: 11px; color: #64748b;">
+            <span id="waterServingsText">~10 servings remaining</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="waterProgressFill"></div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <div class="quick-row">
+            <button class="btn-quick" id="btnWater100">+100 ml</button>
+            <button class="btn-quick" id="btnWater250">+250 ml</button>
+            <button class="btn-quick" id="btnWater500">+500 ml</button>
+          </div>
+
+          <button class="btn-custom" id="btnToggleCustom">
+            <span>+ Custom ML</span>
+          </button>
+
+          <div class="custom-input-box" id="customInputBox">
+            <input type="number" id="customAmountInput" placeholder="Enter ml (e.g. 275)" min="1" max="5000" />
+            <button id="btnSubmitCustom">Add</button>
+          </div>
+
+          <div class="bottom-row">
+            <button class="btn-secondary" id="btnSnoozeWater">Remind in 10m</button>
+            <button class="btn-secondary" id="btnDismissOnly">Close</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Task Reminder Template -->
+      <div id="taskView" style="display: none;">
+        <div class="mascot-row">
+          <div class="mascot-avatar">
+            <svg viewBox="0 0 100 100" fill="none">
+              <path d="M50 10 C50 10 20 48 20 68 C20 84.5 33.5 95 50 95 C66.5 95 80 84.5 80 68 C80 48 50 10 50 10Z" fill="url(#rioGrad2)" />
+              <!-- Determined Eyes -->
+              <circle cx="42" cy="62" r="4" fill="#0A2540"/>
+              <circle cx="60" cy="62" r="4" fill="#0A2540"/>
+              <circle cx="43" cy="60" r="1.5" fill="#ffffff"/>
+              <circle cx="61" cy="60" r="1.5" fill="#ffffff"/>
+              <!-- Smiling mouth -->
+              <path d="M46 72 Q51 77 56 72" stroke="#0A2540" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              <defs>
+                <linearGradient id="rioGrad2" x1="20" y1="20" x2="80" y2="95" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#38BDF8"/>
+                  <stop offset="1" stop-color="#0284C7"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="header-text">
+            <span class="task-badge" id="taskCategoryBadge">TASK</span>
+            <h3 id="taskTitle">Task Reminder</h3>
+            <p id="taskSubtitle" style="color: #64748b; font-size: 12px; font-weight: normal;">Time to get this done!</p>
+          </div>
+        </div>
+
+        <div class="stats-card">
+          <p id="taskDescription" style="font-size: 13px; color: #1e293b; line-height: 1.4; word-break: break-word;">Task details go here.</p>
+        </div>
+
+        <div class="actions" style="margin-top: auto;">
+          <button class="btn-custom" id="btnCompleteTask" style="background: #10B981; font-size: 13px; padding: 11px;">
+            ✓ Mark Completed
+          </button>
+          <div class="bottom-row">
+            <button class="btn-secondary" id="btnSnoozeTask5">In 5 mins</button>
+            <button class="btn-secondary" id="btnSnoozeTask15">In 15 mins</button>
+            <button class="btn-secondary" id="btnDismissTask">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentPayload = null;
+
+    window.rioAPI.onOverlayData((payload) => {
+      currentPayload = payload;
+      renderOverlay(payload);
+    });
+
+    function renderOverlay(payload) {
+      const waterView = document.getElementById('waterView');
+      const taskView = document.getElementById('taskView');
+
+      if (!payload || payload.type === 'water') {
+        waterView.style.display = 'block';
+        taskView.style.display = 'none';
+
+        const data = payload?.data || {};
+        const consumed = data.consumedMl || 0;
+        const target = data.targetMl || 2500;
+        const remaining = data.remainingMl !== undefined ? data.remainingMl : Math.max(0, target - consumed);
+        const percent = Math.min(100, Math.round((consumed / target) * 100));
+
+        document.getElementById('waterTitle').innerText = data.title || 'Hey buddy! 💧';
+        document.getElementById('waterSubtitle').innerText = data.subtitle || 'Time to hydrate!';
+        document.getElementById('waterProgressText').innerText = `${consumed} / ${target} ml (${percent}%)`;
+        document.getElementById('waterRemainingText').innerText = `${remaining} ml`;
+        document.getElementById('waterServingsText').innerText = `Approximately ${data.servingsRemaining || Math.ceil(remaining / 250)} more servings of ${data.defaultContainerCapacity || 250} ml`;
+        document.getElementById('waterProgressFill').style.width = `${percent}%`;
+
+        // Reset custom input box
+        document.getElementById('customInputBox').style.display = 'none';
+        document.getElementById('customAmountInput').value = '';
+      } else {
+        waterView.style.display = 'none';
+        taskView.style.display = 'block';
+
+        const data = payload.data || {};
+        document.getElementById('taskTitle').innerText = data.title || 'Task Reminder';
+        document.getElementById('taskCategoryBadge').innerText = (data.category || 'General').toUpperCase();
+        document.getElementById('taskDescription').innerText = data.description || "It's time to work on your scheduled task!";
+      }
+    }
+
+    // Dismissal
+    function closeWindow() {
+      window.rioAPI.dismissOverlay();
+    }
+
+    document.getElementById('closeBtn').addEventListener('click', closeWindow);
+    document.getElementById('btnDismissOnly').addEventListener('click', closeWindow);
+    document.getElementById('btnDismissTask').addEventListener('click', closeWindow);
+
+    // Water Quick Add buttons
+    async function recordWater(amount) {
+      if (!amount || amount <= 0) return;
+      await window.rioAPI.addWaterEntry({
+        amountMl: amount,
+        timestamp: new Date().toISOString(),
+        note: 'Added from floating reminder'
+      });
+      closeWindow();
+    }
+
+    document.getElementById('btnWater100').addEventListener('click', () => recordWater(100));
+    document.getElementById('btnWater250').addEventListener('click', () => recordWater(250));
+    document.getElementById('btnWater500').addEventListener('click', () => recordWater(500));
+
+    // Custom ML toggle and submit
+    const customInputBox = document.getElementById('customInputBox');
+    const customAmountInput = document.getElementById('customAmountInput');
+
+    document.getElementById('btnToggleCustom').addEventListener('click', () => {
+      customInputBox.style.display = customInputBox.style.display === 'flex' ? 'none' : 'flex';
+      if (customInputBox.style.display === 'flex') {
+        customAmountInput.focus();
+      }
+    });
+
+    document.getElementById('btnSubmitCustom').addEventListener('click', () => {
+      const val = parseInt(customAmountInput.value, 10);
+      if (val && val > 0) {
+        recordWater(val);
+      }
+    });
+
+    customAmountInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const val = parseInt(customAmountInput.value, 10);
+        if (val && val > 0) {
+          recordWater(val);
+        }
+      }
+    });
+
+    // Water Snooze
+    document.getElementById('btnSnoozeWater').addEventListener('click', async () => {
+      await window.rioAPI.snoozeReminder('water-reminder', 10);
+      closeWindow();
+    });
+
+    // Task Actions
+    document.getElementById('btnCompleteTask').addEventListener('click', async () => {
+      if (currentPayload?.data?.id) {
+        await window.rioAPI.completeReminder(currentPayload.data.id);
+      }
+      closeWindow();
+    });
+
+    document.getElementById('btnSnoozeTask5').addEventListener('click', async () => {
+      if (currentPayload?.data?.id) {
+        await window.rioAPI.snoozeReminder(currentPayload.data.id, 5);
+      }
+      closeWindow();
+    });
+
+    document.getElementById('btnSnoozeTask15').addEventListener('click', async () => {
+      if (currentPayload?.data?.id) {
+        await window.rioAPI.snoozeReminder(currentPayload.data.id, 15);
+      }
+      closeWindow();
+    });
+  </script>
+</body>
+</html>

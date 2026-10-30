@@ -1,0 +1,32 @@
+# Node modules and build output
+node_modules/
+dist/
+dist-electron/
+
+# Local databases and runtime state
+data/
+*.sqlite
+*.sqlite3
+*.db
+*.log
+
+# Environment variables & secrets
+.env
+.env.local
+.env.*.local
+
+# OS Generated Files
+Thumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
